@@ -36,8 +36,19 @@
         let hasInteracted = false;
         let loopAtDuration = null; // If set, loop at this duration instead of natural end
 
+        // Helper to send logs to server
+        function sendLog(message) {
+            console.log(message);
+            socket.emit('client-log', {
+                clientType: 'player',
+                screen: screenNumber,
+                message: message
+            });
+        }
+
         // Register as player
         socket.emit('register', { role: 'player', screen: screenNumber });
+        sendLog('Player registered with screen: ' + screenNumber);
 
         // Enable interaction on any touch/click
         function enableInteraction() {
@@ -138,7 +149,7 @@
         // Socket event handlers - SCREEN SPECIFIC
         socket.on('load-screen', (data) => {
             // Only load if this message is for THIS screen
-            if (data.screen == screenNumber) {
+            if (parseInt(data.screen) === parseInt(screenNumber)) {
                 console.log('Received load-screen command for this screen:', data);
                 updateStatus('Loading video...', true);
                 video.src = data.url;
@@ -213,6 +224,22 @@
             } else {
                 video.setAttribute('loop', ''); // Re-enable native loop
                 console.log('Using natural loop');
+            }
+        });
+
+        // Toggle screen labels visibility
+        socket.on('toggle-labels', (data) => {
+            sendLog('🏷️ Received toggle-labels event: ' + JSON.stringify(data));
+            if (screenLabel) {
+                if (data.show) {
+                    screenLabel.classList.remove('hidden');
+                    sendLog('✅ Showing screen label - classList: ' + screenLabel.className);
+                } else {
+                    screenLabel.classList.add('hidden');
+                    sendLog('❌ Hiding screen label - classList: ' + screenLabel.className);
+                }
+            } else {
+                sendLog('❌ ERROR: screenLabel element not found!');
             }
         });
 

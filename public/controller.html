@@ -4,93 +4,294 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Sync Controller</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container controller">
-        <h1>📺 Video Sync Controller</h1>
+    <div class="container-xxl controller py-4">
+        <h1 class="text-center mb-4"><i class="fas fa-tv me-2"></i> Video Sync Controller</h1>
 
-        <div class="status-section">
-            <h2>Connected Screens</h2>
-            <div id="screen-status">
-                <p class="status-message">Waiting for screens to connect...</p>
+        <!-- Step Navigation -->
+        <div class="step-navigation">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Grid Layout</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Add Media</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Assign Videos</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Connect & Play</div>
             </div>
         </div>
 
-        <div class="control-section">
-            <h2>Video Assignment (Per Screen)</h2>
+        <!-- Step 1: Grid Selection -->
+        <div class="step-content active" id="step-1">
+            <h2>Step 1: Select Your Grid Layout</h2>
+            <p class="step-description">Choose how many displays you want to use</p>
 
-            <div class="per-screen-controls">
-                <div class="screen-control">
-                    <h3>📺 TV 1</h3>
-                    <select class="video-select-screen" data-screen="1">
-                        <option value="">-- Choose video --</option>
-                    </select>
-                    <div class="video-info" id="video-info-1"></div>
-                    <button class="btn-load-screen btn btn-secondary" data-screen="1">Load</button>
-                </div>
-
-                <div class="screen-control">
-                    <h3>📺 TV 2</h3>
-                    <select class="video-select-screen" data-screen="2">
-                        <option value="">-- Choose video --</option>
-                    </select>
-                    <div class="video-info" id="video-info-2"></div>
-                    <button class="btn-load-screen btn btn-secondary" data-screen="2">Load</button>
-                </div>
-
-                <div class="screen-control">
-                    <h3>📺 TV 3</h3>
-                    <select class="video-select-screen" data-screen="3">
-                        <option value="">-- Choose video --</option>
-                    </select>
-                    <div class="video-info" id="video-info-3"></div>
-                    <button class="btn-load-screen btn btn-secondary" data-screen="3">Load</button>
-                </div>
-
-                <div class="screen-control">
-                    <h3>📺 TV 4</h3>
-                    <select class="video-select-screen" data-screen="4">
-                        <option value="">-- Choose video --</option>
-                    </select>
-                    <div class="video-info" id="video-info-4"></div>
-                    <button class="btn-load-screen btn btn-secondary" data-screen="4">Load</button>
+            <!-- Profile Management Section -->
+            <div class="state-controls-section">
+                <h3>Load Profile</h3>
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-6">
+                        <select id="profile-select" class="form-select">
+                            <option value="">-- Load saved profile --</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <button id="load-profile" class="btn btn-info w-100">
+                            <i class="fas fa-download"></i> Load
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <button id="delete-profile" class="btn btn-danger w-100">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <h2>Synchronized Playback Controls</h2>
-            <p class="info-text">These controls affect ALL screens simultaneously</p>
-
-            <div class="main-controls">
-                <button id="play-btn" class="btn btn-primary">▶️ Play All</button>
-                <button id="pause-btn" class="btn btn-warning">⏸️ Pause All</button>
-                <button id="stop-btn" class="btn btn-danger">⏹️ Stop All</button>
-                <button id="sync-btn" class="btn btn-info">🔄 Re-Sync All</button>
-            </div>
-
-            <div class="seek-controls-grid">
-                <div>
-                    <label for="seek-time">Seek All to (seconds):</label>
-                    <input type="number" id="seek-time" min="0" step="1" value="0">
-                    <button id="seek-btn" class="btn btn-secondary">⏩ Seek All</button>
+            <div class="grid-selector-wrapper">
+                <div class="grid-label">Grid Layout: <span id="grid-display">2 x 2</span></div>
+                <div class="grid-selector-container">
+                    <div id="grid-selector-grid" class="grid-selector-grid"></div>
                 </div>
             </div>
-
-            <div class="loop-sync-section">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="loop-at-shortest">
-                    <span>Loop all videos at shortest duration (keeps perfect sync)</span>
-                </label>
-                <p class="info-text" id="shortest-duration-info">Load videos to see shortest duration</p>
+            <div class="step-actions">
+                <button id="next-step-1" class="btn btn-primary">
+                    Next: Add Media <i class="fas fa-arrow-right ms-2"></i>
+                </button>
             </div>
         </div>
 
+        <!-- Step 2: Add Media -->
+        <div class="step-content" id="step-2">
+            <h2>Step 2: Add Your Videos</h2>
+            <p class="step-description">Select from existing videos or upload new ones</p>
+
+            <div class="media-source-tabs">
+                <button class="tab-btn active" data-tab="bucket">
+                    <i class="fas fa-folder-open"></i> Video Bucket
+                </button>
+                <button class="tab-btn" data-tab="upload">
+                    <i class="fas fa-upload"></i> Upload New
+                </button>
+            </div>
+
+            <!-- Video Bucket Tab -->
+            <div class="tab-content active" id="bucket-tab">
+                <div class="bucket-toolbar">
+                    <button id="refresh-bucket" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <div class="bucket-info" id="bucket-info">Loading...</div>
+                </div>
+                <div class="bucket-browser" id="bucket-browser">
+                    <!-- Bucket videos will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Upload Tab -->
+            <div class="tab-content" id="upload-tab">
+                <div class="media-upload-section">
+                    <label for="video-file-input" class="upload-label">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div>Choose Video Files</div>
+                        <input type="file" id="video-file-input" accept="video/*" multiple style="display: none;">
+                    </label>
+                </div>
+            </div>
+
+            <div class="media-library-section">
+                <h3>Selected Videos</h3>
+                <div class="row g-3" id="media-library">
+                    <!-- Video previews will be added here -->
+                </div>
+            </div>
+
+            <div class="step-actions">
+                <button id="prev-step-2" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back
+                </button>
+                <button id="next-step-2" class="btn btn-primary">
+                    Next: Assign Videos <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Video Assignments -->
+        <div class="step-content" id="step-3">
+            <h2>Step 3: Assign Videos to Displays</h2>
+            <p class="step-description">Choose which video plays on each screen</p>
+            <div id="per-screen-controls" class="row g-3 mb-4">
+                <!-- Dynamically generated screen controls -->
+            </div>
+            <div class="state-controls-section">
+                <h3>Save Configuration</h3>
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-8">
+                        <input type="text" id="state-name" class="form-control" placeholder="Configuration name...">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button id="save-state" class="btn btn-success w-100">
+                            <i class="fas fa-save"></i> Save State
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-6">
+                        <select id="load-state-select" class="form-select">
+                            <option value="">-- Load saved state --</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <button id="load-state" class="btn btn-info w-100">
+                            <i class="fas fa-download"></i> Load
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <button id="delete-state" class="btn btn-danger w-100">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="step-actions">
+                <button id="prev-step-3" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back
+                </button>
+                <button id="next-step-3" class="btn btn-primary">
+                    Next: Connect & Play <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Connection & Playback -->
+        <div class="step-content" id="step-4">
+            <h2>Step 4: Connect Displays & Play</h2>
+            <p class="step-description">Make sure all your displays are connected</p>
+            <div class="status-section">
+                <h3>Connected Screens</h3>
+                <div id="screen-status">
+                    <p class="status-message">Waiting for screens to connect...</p>
+                </div>
+            </div>
+            <div class="step-actions">
+                <button id="prev-step-4" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back
+                </button>
+            </div>
+        </div>
+
+        <!-- Video Modal -->
+        <div id="video-modal" class="video-modal" style="display: none;">
+            <div class="video-modal-content">
+                <span class="video-modal-close">&times;</span>
+                <video id="modal-video" controls></video>
+            </div>
+        </div>
+
+        <!-- Notification Modal -->
+        <div class="modal fade" id="notification-modal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center py-4">
+                        <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 4rem;"></i>
+                        <p class="fs-5" id="notification-message"></p>
+                        <div id="notification-actions">
+                            <button type="button" class="btn btn-primary" id="notification-ok">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playback Bar (shown when ready) -->
+        <div id="playback-bar" class="playback-bar" style="display: none;">
+            <div class="container-xxl">
+                <div class="row g-3 align-items-center">
+                    <!-- Playback Controls -->
+                    <div class="col-auto">
+                        <div class="btn-group" role="group">
+                            <button id="play-btn" class="playback-btn" title="Play"><i class="fas fa-play"></i></button>
+                            <button id="pause-btn" class="playback-btn" title="Pause"><i class="fas fa-pause"></i></button>
+                            <button id="stop-btn" class="playback-btn" title="Stop"><i class="fas fa-stop"></i></button>
+                            <button id="sync-btn" class="playback-btn" title="Sync"><i class="fas fa-sync"></i></button>
+                            <button id="preview-btn" class="playback-btn" title="Preview"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Loop Sync -->
+                    <div class="col-auto">
+                        <div class="form-check form-switch playback-loop">
+                            <input class="form-check-input" type="checkbox" id="loop-at-shortest">
+                            <label class="form-check-label" for="loop-at-shortest">Loop Sync</label>
+                        </div>
+                    </div>
+
+                    <!-- Show Labels -->
+                    <div class="col-auto">
+                        <div class="form-check form-switch playback-loop">
+                            <input class="form-check-input" type="checkbox" id="show-labels" checked>
+                            <label class="form-check-label" for="show-labels">Show Labels</label>
+                        </div>
+                    </div>
+
+                    <!-- Duration Info -->
+                    <div class="col-auto">
+                        <div id="shortest-duration-info" class="playback-info"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Modal -->
+        <div class="modal fade" id="preview-modal" tabindex="-1">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-eye me-2"></i> Display Preview
+                        </h5>
+                        <div class="preview-controls">
+                            <button type="button" class="btn btn-sm btn-primary" id="preview-play-pause">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <div class="preview-scrubber">
+                                <span id="preview-time-display">0:00</span>
+                                <input type="range" id="preview-scrubber" min="0" max="100" value="0" step="0.1">
+                                <span id="preview-duration-display">0:00</span>
+                            </div>
+                            <label class="preview-control-item">
+                                <input type="checkbox" id="seamless-mode">
+                                <span>Seamless</span>
+                            </label>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="preview-modal-body">
+                        <div id="preview-container" class="preview-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
         <div class="logs-section">
-            <h2>Activity Log</h2>
+            <h3>Activity Log</h3>
             <div id="logs"></div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -100,67 +301,238 @@
         const pauseBtn = document.getElementById('pause-btn');
         const stopBtn = document.getElementById('stop-btn');
         const syncBtn = document.getElementById('sync-btn');
-        const seekBtn = document.getElementById('seek-btn');
-        const seekTime = document.getElementById('seek-time');
         const loopAtShortestCheckbox = document.getElementById('loop-at-shortest');
+        const showLabelsCheckbox = document.getElementById('show-labels');
         const shortestDurationInfo = document.getElementById('shortest-duration-info');
+        const perScreenControlsContainer = document.getElementById('per-screen-controls');
+        const gridSelectorGrid = document.getElementById('grid-selector-grid');
+        const gridDisplay = document.getElementById('grid-display');
+        const videoFileInput = document.getElementById('video-file-input');
+        const saveStateBtn = document.getElementById('save-state');
+        const loadStateBtn = document.getElementById('load-state');
+        const deleteStateBtn = document.getElementById('delete-state');
+        const stateNameInput = document.getElementById('state-name');
+        const loadStateSelect = document.getElementById('load-state-select');
+        const profileSelect = document.getElementById('profile-select');
+        const loadProfileBtn = document.getElementById('load-profile');
+        const deleteProfileBtn = document.getElementById('delete-profile');
+        const mediaLibrary = document.getElementById('media-library');
+        const videoModal = document.getElementById('video-modal');
+        const modalVideo = document.getElementById('modal-video');
+        const playbackBar = document.getElementById('playback-bar');
+        const notificationModalEl = document.getElementById('notification-modal');
+        const notificationModal = new bootstrap.Modal(notificationModalEl);
+        const notificationMessage = document.getElementById('notification-message');
+        const notificationActions = document.getElementById('notification-actions');
+        const previewModalEl = document.getElementById('preview-modal');
+        const previewModal = new bootstrap.Modal(previewModalEl);
+        const previewContainer = document.getElementById('preview-container');
+        const previewBtn = document.getElementById('preview-btn');
 
-        // Track which screens have videos loaded
-        let screensLoaded = new Set();
         let shortestDuration = null;
+        let displayCount = 4;
+        let gridRows = 2;
+        let gridCols = 2;
+        let currentStep = 1;
+
+        // Helper to send logs to server
+        function sendLog(message) {
+            console.log(message);
+            socket.emit('client-log', {
+                clientType: 'controller',
+                screen: null,
+                message: message
+            });
+        }
 
         // Register as controller
         socket.emit('register', { role: 'controller' });
+        sendLog('Controller registered');
 
-        // Populate video list (you can modify this list)
-        const videos = [
-            { name: 'Video 1', url: '/videos/video-1.mp4' },
-            { name: 'Video 2', url: '/videos/video-2.mp4' },
-            { name: 'Video 3', url: '/videos/video-3.mp4' },
-            { name: 'Video 4', url: '/videos/video-4.mp4' }
-        ];
+        // Available videos (empty by default, user must add videos)
+        let videos = [];
 
         // Store video metadata
         let videoMetadata = {};
 
-        // Populate all dropdowns
-        document.querySelectorAll('.video-select-screen').forEach(select => {
-            videos.forEach(video => {
-                const option = document.createElement('option');
-                option.value = video.url;
-                option.textContent = video.name;
-                select.appendChild(option);
-            });
-
-            // Add change listener to load metadata when video is selected
-            select.addEventListener('change', async () => {
-                const screen = select.dataset.screen;
-                const url = select.value;
-                const infoDiv = document.getElementById(`video-info-${screen}`);
-
-                if (url && infoDiv) {
-                    infoDiv.innerHTML = '<em>Loading metadata...</em>';
-
-                    // Check if we already have metadata for this video
-                    if (videoMetadata[url]) {
-                        displayVideoInfo(screen, videoMetadata[url]);
-                        updateLoopDuration();
-                    } else {
-                        // Load video metadata
-                        const metadata = await getVideoMetadata(url);
-                        if (metadata) {
-                            videoMetadata[url] = metadata;
-                            displayVideoInfo(screen, metadata);
-                            updateLoopDuration();
-                        } else {
-                            infoDiv.innerHTML = '<em style="color: red;">Error loading metadata</em>';
-                        }
+        // Load configuration from localStorage
+        function loadConfiguration() {
+            const config = localStorage.getItem('videoPlayerConfig');
+            if (config) {
+                try {
+                    const parsed = JSON.parse(config);
+                    gridRows = parsed.gridRows || 2;
+                    gridCols = parsed.gridCols || 2;
+                    if (parsed.videos) {
+                        videos = parsed.videos;
                     }
-                } else if (infoDiv) {
-                    infoDiv.innerHTML = '';
+                    if (parsed.videoMetadata) {
+                        videoMetadata = parsed.videoMetadata;
+                    }
+
+                    // Calculate display count from grid
+                    displayCount = gridRows * gridCols;
+                    updateGridDisplay();
+                } catch (e) {
+                    console.error('Error loading configuration:', e);
+                }
+            }
+        }
+
+        // Save configuration to localStorage and server
+        async function saveConfiguration() {
+            const config = {
+                gridRows,
+                gridCols,
+                videos,
+                videoMetadata
+            };
+            localStorage.setItem('videoPlayerConfig', JSON.stringify(config));
+
+            // Also save to server
+            try {
+                await fetch('/current-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config })
+                });
+            } catch (error) {
+                console.error('Error saving config to server:', error);
+            }
+        }
+
+        // Generate screen controls dynamically
+        function generateScreenControls() {
+            perScreenControlsContainer.innerHTML = '';
+
+            // Determine Bootstrap column class based on grid columns
+            let colClass = 'col-12';
+            if (gridCols === 1) colClass = 'col-12';
+            else if (gridCols === 2) colClass = 'col-12 col-md-6';
+            else if (gridCols === 3) colClass = 'col-12 col-md-6 col-lg-4';
+            else if (gridCols === 4) colClass = 'col-12 col-sm-6 col-lg-3';
+
+            for (let i = 1; i <= displayCount; i++) {
+                const screenControlWrapper = document.createElement('div');
+                screenControlWrapper.className = colClass;
+
+                const screenControl = document.createElement('div');
+                screenControl.className = 'screen-control';
+                screenControl.id = `screen-control-${i}`;
+                screenControl.innerHTML = `
+                    <h3>📺 TV ${i}</h3>
+                    <select class="video-select-screen form-select" data-screen="${i}">
+                        <option value="">-- Choose video --</option>
+                    </select>
+                    <div class="video-info" id="video-info-${i}"></div>
+                `;
+
+                screenControlWrapper.appendChild(screenControl);
+                perScreenControlsContainer.appendChild(screenControlWrapper);
+            }
+
+            // Populate dropdowns and add event listeners
+            populateVideoDropdowns();
+
+            saveConfiguration();
+        }
+
+        // Mark screens as unavailable with red overlay
+        function markUnavailableScreens(screenNumbers) {
+            // First, clear all existing warnings
+            document.querySelectorAll('.screen-control').forEach(control => {
+                control.classList.remove('screen-unavailable');
+                const existingWarning = control.querySelector('.screen-warning-overlay');
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+                // Re-enable select
+                const select = control.querySelector('.video-select-screen');
+                if (select) {
+                    select.disabled = false;
                 }
             });
-        });
+
+            // Add warnings to missing screens
+            screenNumbers.forEach(screenNum => {
+                const screenControl = document.getElementById(`screen-control-${screenNum}`);
+                if (screenControl) {
+                    screenControl.classList.add('screen-unavailable');
+
+                    // Add warning overlay
+                    const overlay = document.createElement('div');
+                    overlay.className = 'screen-warning-overlay';
+                    overlay.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>Screen Not Connected</div>
+                    `;
+                    screenControl.appendChild(overlay);
+
+                    // Disable the select
+                    const select = screenControl.querySelector('.video-select-screen');
+                    if (select) {
+                        select.disabled = true;
+                    }
+                }
+            });
+        }
+
+        // Populate all video dropdowns
+        function populateVideoDropdowns() {
+            document.querySelectorAll('.video-select-screen').forEach(select => {
+                // Clear existing options except first
+                select.innerHTML = '<option value="">-- Choose video --</option>';
+
+                videos.forEach(video => {
+                    const option = document.createElement('option');
+                    option.value = video.url;
+
+                    // Add metadata to option text if available
+                    if (videoMetadata[video.url]) {
+                        const meta = videoMetadata[video.url];
+                        option.textContent = `${video.name} (${meta.duration.toFixed(1)}s, ~${meta.estimatedFrames} frames)`;
+                    } else {
+                        option.textContent = video.name;
+                    }
+
+                    select.appendChild(option);
+                });
+
+                // Add change listener to load metadata and auto-load video when selected
+                select.addEventListener('change', async () => {
+                    const screen = select.dataset.screen;
+                    const url = select.value;
+                    const infoDiv = document.getElementById(`video-info-${screen}`);
+
+                    if (url && infoDiv) {
+                        infoDiv.innerHTML = '<em>Loading...</em>';
+
+                        // Check if we already have metadata for this video
+                        if (videoMetadata[url]) {
+                            displayVideoInfo(screen, videoMetadata[url]);
+                            updateLoopDuration();
+                        } else {
+                            // Load video metadata
+                            const metadata = await getVideoMetadata(url);
+                            if (metadata) {
+                                videoMetadata[url] = metadata;
+                                displayVideoInfo(screen, metadata);
+                                updateLoopDuration();
+                            } else {
+                                infoDiv.innerHTML = '<em style="color: red;">Error loading metadata</em>';
+                            }
+                        }
+
+                        // Auto-load video on screen
+                        const videoName = select.options[select.selectedIndex].text;
+                        addLog(`Loading "${videoName}" on TV ${screen}`);
+                        socket.emit('load-screen', { screen: parseInt(screen), url, videoName });
+                    } else if (infoDiv) {
+                        infoDiv.innerHTML = '';
+                    }
+                });
+            });
+        }
 
         // Get video metadata by loading it in a hidden video element
         async function getVideoMetadata(url) {
@@ -194,34 +566,390 @@
             }
         }
 
-        // Update screen status
-        socket.on('client-status', (clients) => {
-            if (clients.length === 0) {
-                screenStatus.innerHTML = '<p class="status-message">No screens connected</p>';
-            } else {
-                screenStatus.innerHTML = clients.map(client => {
-                    const readyIcon = client.readyState ? '✅' : '⏳';
-                    const videoName = client.videoName ? ` - ${client.videoName}` : '';
-                    return `<div class="screen-item">${readyIcon} Screen ${client.screen || 'Unknown'} ${client.readyState ? '(Ready)' : '(Loading...)'}${videoName}</div>`;
-                }).join('');
+        // Track connected clients
+        let connectedClients = [];
+
+        // Initialize grid selector
+        function initGridSelector() {
+            const maxRows = 4;
+            const maxCols = 4;
+
+            // Create grid cells
+            gridSelectorGrid.innerHTML = '';
+            gridSelectorGrid.style.gridTemplateColumns = `repeat(${maxCols}, 30px)`;
+            gridSelectorGrid.style.gridTemplateRows = `repeat(${maxRows}, 30px)`;
+
+            for (let row = 1; row <= maxRows; row++) {
+                for (let col = 1; col <= maxCols; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    cell.addEventListener('mouseenter', () => {
+                        highlightGridCells(row, col);
+                        gridDisplay.textContent = `${row} x ${col}`;
+                    });
+
+                    cell.addEventListener('click', () => {
+                        gridRows = row;
+                        gridCols = col;
+                        displayCount = gridRows * gridCols;
+                        updateGridDisplay();
+                        generateScreenControls();
+                        addLog(`Grid layout set to ${gridRows}x${gridCols} (${displayCount} displays)`);
+                    });
+
+                    gridSelectorGrid.appendChild(cell);
+                }
+            }
+        }
+
+        function highlightGridCells(rows, cols) {
+            const cells = gridSelectorGrid.querySelectorAll('.grid-cell');
+            cells.forEach(cell => {
+                const cellRow = parseInt(cell.dataset.row);
+                const cellCol = parseInt(cell.dataset.col);
+
+                if (cellRow <= rows && cellCol <= cols) {
+                    cell.classList.add('highlighted');
+                } else {
+                    cell.classList.remove('highlighted');
+                }
+            });
+        }
+
+        function updateGridDisplay() {
+            gridDisplay.textContent = `${gridRows} x ${gridCols}`;
+            highlightGridCells(gridRows, gridCols);
+        }
+
+        function applyGridLayout() {
+            perScreenControlsContainer.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
+            perScreenControlsContainer.style.gridTemplateRows = `repeat(${gridRows}, auto)`;
+            perScreenControlsContainer.style.display = 'grid';
+            saveConfiguration();
+        }
+
+        // Reset hover on mouse leave
+        gridSelectorGrid.addEventListener('mouseleave', () => {
+            highlightGridCells(gridRows, gridCols);
+            gridDisplay.textContent = `${gridRows} x ${gridCols}`;
+        });
+
+
+
+        // Profile Management Functions (Server-based)
+        async function loadProfileList() {
+            try {
+                const response = await fetch('/profiles');
+                const data = await response.json();
+
+                profileSelect.innerHTML = '<option value="">-- Load saved profile --</option>';
+
+                if (data.profiles) {
+                    Object.keys(data.profiles).forEach(profileName => {
+                        const option = document.createElement('option');
+                        option.value = profileName;
+                        const profile = data.profiles[profileName];
+                        const savedDate = profile.savedAt ? new Date(profile.savedAt).toLocaleDateString() : '';
+                        option.textContent = `${profileName}${savedDate ? ' (' + savedDate + ')' : ''}`;
+                        profileSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading profiles:', error);
+                addLog('❌ Error loading profiles from server');
+            }
+        }
+
+        // Load profile from server
+        loadProfileBtn.addEventListener('click', async () => {
+            const profileName = profileSelect.value;
+            if (!profileName) {
+                showNotification('Please select a profile to load');
+                return;
+            }
+
+            try {
+                const response = await fetch('/profiles');
+                const data = await response.json();
+                const profile = data.profiles[profileName];
+
+                if (profile) {
+                    // Restore configuration
+                    gridRows = profile.gridRows;
+                    gridCols = profile.gridCols;
+                    displayCount = gridRows * gridCols;
+                    videos = profile.videos || [];
+                    videoMetadata = profile.videoMetadata || {};
+
+                    // Update Step 1 - Grid Layout
+                    updateGridDisplay();
+
+                    // Update Step 2 - Media Library
+                    renderMediaLibrary();
+
+                    // Update Step 3 - Screen Controls
+                    generateScreenControls();
+
+                    // Restore video assignments
+                    if (profile.assignments) {
+                        savedAssignments = profile.assignments;
+
+                        // Wait for dropdowns to be populated, then restore assignments
+                        setTimeout(() => {
+                            Object.keys(profile.assignments).forEach(screen => {
+                                const assignment = profile.assignments[screen];
+                                const select = document.querySelector(`.video-select-screen[data-screen="${screen}"]`);
+                                if (select) {
+                                    select.value = assignment.url;
+                                    // Trigger change event to load metadata
+                                    select.dispatchEvent(new Event('change'));
+                                }
+                            });
+                        }, 200);
+
+                        // Wait longer before checking connections to ensure client status is received
+                        setTimeout(() => {
+                            // Check which screens are assigned
+                            const assignedScreens = Object.keys(profile.assignments).map(s => parseInt(s));
+                            const requiredScreens = Array.from({length: displayCount}, (_, i) => i + 1);
+                            const missingAssignments = requiredScreens.filter(s => !assignedScreens.includes(s));
+
+                            // Check connection status
+                            console.log('=== Profile Load Connection Check ===');
+                            console.log('Connected clients:', connectedClients);
+                            console.log('Connected clients length:', connectedClients.length);
+
+                            // Debug each client's screen number
+                            connectedClients.forEach((c, idx) => {
+                                console.log(`Client ${idx}: screen = ${c.screen}, type = ${typeof c.screen}`);
+                            });
+
+                            // Convert screen numbers to integers for comparison
+                            const connectedScreenNumbers = connectedClients
+                                .map(c => parseInt(c.screen))
+                                .filter(s => !isNaN(s));
+                            const missingConnections = requiredScreens.filter(s => !connectedScreenNumbers.includes(s));
+
+                            console.log('Required screens:', requiredScreens);
+                            console.log('Connected screen numbers:', connectedScreenNumbers);
+                            console.log('Missing connections:', missingConnections);
+
+                            // Determine where to navigate
+                            if (missingAssignments.length === 0) {
+                                // All screens have assignments
+                                if (missingConnections.length === 0) {
+                                    // All screens connected, go to Step 4
+                                    goToStep(4);
+                                    addLog(`✅ Profile loaded: ${profileName} - All screens ready`);
+                                } else {
+                                    // Some screens not connected, go to Step 3 with warning
+                                    goToStep(3);
+                                    markUnavailableScreens(missingConnections);
+                                    showNotification(`Profile loaded: ${profileName}\n\nWarning: The following screens are not connected:\nTV ${missingConnections.join(', TV ')}\n\nPlease connect these screens before proceeding to playback.`);
+                                    addLog(`⚠️ Profile loaded: ${profileName} - Waiting for screens: TV ${missingConnections.join(', TV ')}`);
+                                }
+                            } else {
+                                // Some screens don't have assignments, go to Step 3
+                                goToStep(3);
+                                const screensToWarn = [...new Set([...missingAssignments, ...missingConnections])];
+                                markUnavailableScreens(screensToWarn);
+
+                                if (missingConnections.length > 0) {
+                                    showNotification(`Profile loaded: ${profileName}\n\nWarning: The following screens need attention:\n${missingAssignments.length > 0 ? `\nUnassigned: TV ${missingAssignments.join(', TV ')}` : ''}${missingConnections.length > 0 ? `\nNot Connected: TV ${missingConnections.join(', TV ')}` : ''}`);
+                                } else {
+                                    showNotification(`Profile loaded: ${profileName}\n\nWarning: The following screens need video assignments:\nTV ${missingAssignments.join(', TV ')}`);
+                                }
+                                addLog(`⚠️ Profile loaded: ${profileName} - Needs attention`);
+                            }
+                        }, 1000);
+                    } else {
+                        // No assignments, go to Step 3
+                        goToStep(3);
+                        addLog(`✅ Profile loaded: ${profileName} - Please assign videos`);
+                    }
+
+                    // Save to localStorage for persistence
+                    saveConfiguration();
+                } else {
+                    showNotification('Profile not found');
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showNotification('Error loading profile: ' + error.message);
             }
         });
 
-        // Load video on specific screen
-        document.querySelectorAll('.btn-load-screen').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const screen = btn.dataset.screen;
-                const select = document.querySelector(`.video-select-screen[data-screen="${screen}"]`);
-                const url = select.value;
+        // Delete profile from server
+        deleteProfileBtn.addEventListener('click', async () => {
+            const profileName = profileSelect.value;
+            if (!profileName) {
+                showNotification('Please select a profile to delete');
+                return;
+            }
 
+            showNotification(`Delete profile "${profileName}"?`, [
+                {
+                    text: 'Delete',
+                    class: 'btn-danger',
+                    action: async () => {
+                        try {
+                            const response = await fetch(`/profiles/${encodeURIComponent(profileName)}`, {
+                                method: 'DELETE'
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                                addLog(`✅ Profile deleted: ${profileName}`);
+                                await loadProfileList();
+                            } else {
+                                showNotification('Error deleting profile: ' + (result.error || 'Unknown error'));
+                            }
+                        } catch (error) {
+                            console.error('Error deleting profile:', error);
+                            showNotification('Error deleting profile: ' + error.message);
+                        }
+                    }
+                },
+                {
+                    text: 'Cancel',
+                    class: 'btn-secondary',
+                    action: () => {}
+                }
+            ]);
+        });
+
+        // Save state (now saves to server as profile)
+        saveStateBtn.addEventListener('click', async () => {
+            const stateName = stateNameInput.value.trim();
+            if (!stateName) {
+                showNotification('Please enter a name for this configuration');
+                return;
+            }
+
+            // Collect current video assignments
+            const assignments = {};
+            document.querySelectorAll('.video-select-screen').forEach(select => {
+                const screen = select.dataset.screen;
+                const url = select.value;
+                const videoName = select.options[select.selectedIndex].text;
                 if (url) {
-                    const videoName = select.options[select.selectedIndex].text;
-                    addLog(`Loading "${videoName}" on TV ${screen}`);
-                    socket.emit('load-screen', { screen, url, videoName });
-                    screensLoaded.add(screen);
+                    assignments[screen] = { url, videoName };
                 }
             });
+
+            const profile = {
+                displayCount,
+                gridRows,
+                gridCols,
+                videos,
+                videoMetadata,
+                assignments
+            };
+
+            try {
+                const response = await fetch('/profiles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: stateName, profile })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(`✅ Configuration saved: ${stateName}`);
+                    stateNameInput.value = '';
+                    await loadProfileList();
+                    updateStateDropdown();
+                } else {
+                    showNotification('Error saving configuration: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error saving configuration:', error);
+                showNotification('Error saving configuration: ' + error.message);
+            }
         });
+
+        // Load state
+        loadStateBtn.addEventListener('click', () => {
+            const stateName = loadStateSelect.value;
+            if (!stateName) {
+                showNotification('Please select a state to load');
+                return;
+            }
+
+            const savedStates = JSON.parse(localStorage.getItem('videoPlayerStates') || '{}');
+            const state = savedStates[stateName];
+
+            if (state) {
+                gridRows = state.gridRows;
+                gridCols = state.gridCols;
+                displayCount = gridRows * gridCols;
+                videos = state.videos;
+
+                updateGridDisplay();
+                generateScreenControls();
+
+                // Restore video assignments
+                if (state.assignments) {
+                    Object.keys(state.assignments).forEach(screen => {
+                        const assignment = state.assignments[screen];
+                        const select = document.querySelector(`.video-select-screen[data-screen="${screen}"]`);
+                        if (select) {
+                            select.value = assignment.url;
+                            // Trigger change event to load metadata
+                            select.dispatchEvent(new Event('change'));
+                        }
+                    });
+                }
+
+                addLog(`State loaded: ${stateName}`);
+            }
+        });
+
+        // Delete state
+        deleteStateBtn.addEventListener('click', () => {
+            const stateName = loadStateSelect.value;
+            if (!stateName) {
+                showNotification('Please select a state to delete');
+                return;
+            }
+
+            showNotification(`Delete state "${stateName}"?`, [
+                {
+                    text: 'Delete',
+                    class: 'btn-danger',
+                    action: () => {
+                        const savedStates = JSON.parse(localStorage.getItem('videoPlayerStates') || '{}');
+                        delete savedStates[stateName];
+                        localStorage.setItem('videoPlayerStates', JSON.stringify(savedStates));
+                        updateStateDropdown();
+                        addLog(`State deleted: ${stateName}`);
+                    }
+                },
+                {
+                    text: 'Cancel',
+                    class: 'btn-secondary',
+                    action: () => {}
+                }
+            ]);
+        });
+
+        // Update state dropdown
+        function updateStateDropdown() {
+            const savedStates = JSON.parse(localStorage.getItem('videoPlayerStates') || '{}');
+            loadStateSelect.innerHTML = '<option value="">-- Load saved state --</option>';
+
+            Object.keys(savedStates).forEach(stateName => {
+                const option = document.createElement('option');
+                option.value = stateName;
+                option.textContent = stateName;
+                loadStateSelect.appendChild(option);
+            });
+        }
 
         // Play all
         playBtn.addEventListener('click', () => {
@@ -239,20 +967,12 @@
         stopBtn.addEventListener('click', () => {
             addLog('⏹️ Stopping all screens');
             socket.emit('stop-all');
-            screensLoaded.clear();
         });
 
         // Sync all
         syncBtn.addEventListener('click', () => {
             addLog('🔄 Re-syncing all screens');
             socket.emit('sync-all', { timestamp: Date.now() });
-        });
-
-        // Seek all
-        seekBtn.addEventListener('click', () => {
-            const time = parseFloat(seekTime.value);
-            addLog(`⏩ Seeking all to ${time}s`);
-            socket.emit('seek-all', { time, timestamp: Date.now() });
         });
 
         // Loop at shortest checkbox
@@ -264,6 +984,14 @@
                 addLog('🔄 Disabled loop-at-shortest (using natural loop)');
                 socket.emit('set-loop-duration', { duration: null });
             }
+        });
+
+        // Show/hide labels checkbox
+        showLabelsCheckbox.addEventListener('change', () => {
+            const show = showLabelsCheckbox.checked;
+            sendLog('🏷️ Emitting toggle-labels: ' + JSON.stringify({ show }));
+            addLog(`${show ? '👁️ Showing' : '🙈 Hiding'} screen labels`);
+            socket.emit('toggle-labels', { show });
         });
 
         // Update loop duration based on loaded videos
@@ -308,11 +1036,819 @@
         // Socket events
         socket.on('connect', () => {
             addLog('✅ Connected to server');
+            // Send initial label state to all screens
+            const initialShow = showLabelsCheckbox.checked;
+            sendLog('🏷️ Sending initial label state on connect: ' + JSON.stringify({ show: initialShow }));
+            socket.emit('toggle-labels', { show: initialShow });
         });
 
         socket.on('disconnect', () => {
             addLog('❌ Disconnected from server');
         });
+
+        // Step Navigation
+        function goToStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+            // Show target step
+            document.getElementById(`step-${step}`).classList.add('active');
+            document.querySelector(`.step[data-step="${step}"]`).classList.add('active');
+
+            currentStep = step;
+
+            // Check if ready to show playback bar (step 4)
+            if (step === 4) {
+                checkReadyForPlayback();
+            }
+        }
+
+        // Make step navigation clickable
+        document.querySelectorAll('.step').forEach(stepEl => {
+            stepEl.addEventListener('click', () => {
+                const stepNumber = parseInt(stepEl.dataset.step);
+                goToStep(stepNumber);
+            });
+        });
+
+        // Show notification modal
+        function showNotification(message, buttons = null) {
+            notificationMessage.textContent = message;
+
+            if (buttons) {
+                notificationActions.innerHTML = '';
+                buttons.forEach(btn => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = `btn ${btn.class}`;
+                    button.textContent = btn.text;
+                    button.onclick = () => {
+                        btn.action();
+                        notificationModal.hide();
+                    };
+                    notificationActions.appendChild(button);
+                });
+            } else {
+                notificationActions.innerHTML = '<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>';
+            }
+
+            notificationModal.show();
+        }
+
+        // Validation functions
+        function validateStep1() {
+            // Grid must be selected (always true since default is 2x2)
+            return true;
+        }
+
+        function validateStep2() {
+            if (videos.length === 0) {
+                showNotification('Please add at least one video before continuing.');
+                return false;
+            }
+            return true;
+        }
+
+        function validateStep3() {
+            // Check if all screens have videos assigned
+            const allAssigned = Array.from(document.querySelectorAll('.video-select-screen')).every(select => select.value !== '');
+            if (!allAssigned) {
+                showNotification('Please assign a video to all displays before continuing.');
+                return false;
+            }
+            return true;
+        }
+
+        // Step navigation event listeners with validation
+        document.getElementById('next-step-1').addEventListener('click', () => {
+            if (validateStep1()) goToStep(2);
+        });
+        document.getElementById('prev-step-2').addEventListener('click', () => goToStep(1));
+        document.getElementById('next-step-2').addEventListener('click', () => {
+            if (validateStep2()) goToStep(3);
+        });
+        document.getElementById('prev-step-3').addEventListener('click', () => goToStep(2));
+        document.getElementById('next-step-3').addEventListener('click', () => {
+            if (validateStep3()) goToStep(4);
+        });
+        document.getElementById('prev-step-4').addEventListener('click', () => goToStep(3));
+
+        // Media Library Functions
+        function renderMediaLibrary() {
+            mediaLibrary.innerHTML = '';
+
+            videos.forEach((video, index) => {
+                const colWrapper = document.createElement('div');
+                colWrapper.className = 'col-6 col-sm-4 col-md-3 col-lg-2';
+
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+
+                const videoPreview = document.createElement('video');
+                videoPreview.src = video.url;
+                videoPreview.preload = 'metadata';
+                videoPreview.muted = true;
+                videoPreview.className = 'video-preview';
+
+                const videoTitle = document.createElement('div');
+                videoTitle.className = 'video-title';
+                videoTitle.textContent = video.name;
+                videoTitle.addEventListener('click', () => openVideoModal(video.url));
+
+                const videoInfo = document.createElement('div');
+                videoInfo.className = 'video-card-info';
+                videoInfo.innerHTML = '<em>Loading...</em>';
+
+                // Load metadata and cache it
+                getVideoMetadata(video.url).then(metadata => {
+                    if (metadata) {
+                        videoMetadata[video.url] = metadata;
+                        videoInfo.innerHTML = `${metadata.duration.toFixed(1)}s (~${metadata.estimatedFrames} frames)`;
+                        // Refresh dropdowns to show metadata
+                        populateVideoDropdowns();
+                    }
+                });
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn-remove-video';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.addEventListener('click', () => removeVideo(index));
+
+                videoCard.appendChild(videoPreview);
+                videoCard.appendChild(videoTitle);
+                videoCard.appendChild(videoInfo);
+                videoCard.appendChild(removeBtn);
+                colWrapper.appendChild(videoCard);
+                mediaLibrary.appendChild(colWrapper);
+            });
+        }
+
+        function removeVideo(index) {
+            const videoName = videos[index].name;
+            showNotification(`Remove "${videoName}"?`, [
+                {
+                    text: 'Remove',
+                    class: 'btn-danger',
+                    action: () => {
+                        videos.splice(index, 1);
+                        renderMediaLibrary();
+                        populateVideoDropdowns();
+                        saveConfiguration();
+                        addLog(`Removed video: ${videoName}`);
+                    }
+                },
+                {
+                    text: 'Cancel',
+                    class: 'btn-secondary',
+                    action: () => {}
+                }
+            ]);
+        }
+
+        function openVideoModal(url) {
+            modalVideo.src = url;
+            videoModal.style.display = 'flex';
+            modalVideo.play();
+        }
+
+        // Video modal close
+        const videoModalClose = document.querySelector('.video-modal-close');
+        if (videoModalClose) {
+            videoModalClose.addEventListener('click', () => {
+                videoModal.style.display = 'none';
+                modalVideo.pause();
+                modalVideo.src = '';
+            });
+        }
+
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                videoModal.style.display = 'none';
+                modalVideo.pause();
+                modalVideo.src = '';
+            }
+        });
+
+        // Update video file input handler - uploads to server
+        videoFileInput.addEventListener('change', async (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                for (const file of Array.from(files)) {
+                    const videoName = file.name;
+
+                    // Show uploading status
+                    addLog(`Uploading: ${videoName}...`);
+
+                    try {
+                        // Upload to server
+                        const formData = new FormData();
+                        formData.append('video', file);
+
+                        const response = await fetch('/upload-video', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            // Add to videos list with server URL
+                            videos.push({ name: result.filename, url: result.url });
+                            saveConfiguration();
+                            addLog(`✅ Uploaded: ${videoName}`);
+                        } else {
+                            addLog(`❌ Failed to upload: ${videoName}`);
+                            showNotification(`Failed to upload ${videoName}: ${result.error || 'Unknown error'}`);
+                        }
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        addLog(`❌ Error uploading: ${videoName}`);
+                        showNotification(`Error uploading ${videoName}: ${error.message}`);
+                    }
+                }
+                renderMediaLibrary();
+                populateVideoDropdowns();
+
+                // Refresh bucket after upload
+                loadBucketVideos();
+            }
+
+            // Reset input so same file can be selected again if needed
+            videoFileInput.value = '';
+        });
+
+        // Socket handler for client status updates
+        socket.on('client-status', (clients) => {
+            console.log('Client status update:', clients);
+            connectedClients = clients;
+
+            // Update screen status display
+            if (clients.length === 0) {
+                screenStatus.innerHTML = '<p class="status-message">Waiting for screens to connect...</p>';
+            } else {
+                screenStatus.innerHTML = clients.map(client => {
+                    const readyIcon = client.readyState ? '✅' : '⏳';
+                    const videoName = client.videoName ? ` - ${client.videoName}` : '';
+                    return `<div class="screen-item">${readyIcon} Screen ${client.screen || 'Unknown'} ${client.readyState ? '(Ready)' : '(Loading...)'}${videoName}</div>`;
+                }).join('');
+            }
+
+            // Update warning overlays in Step 3 based on current connection state
+            if (currentStep === 3) {
+                // Convert screen numbers to integers for comparison
+                const connectedScreenNumbers = clients
+                    .map(c => parseInt(c.screen))
+                    .filter(s => !isNaN(s));
+                const requiredScreens = Array.from({length: displayCount}, (_, i) => i + 1);
+                const missingConnections = requiredScreens.filter(s => !connectedScreenNumbers.includes(s));
+
+                // Update warnings for disconnected screens
+                if (missingConnections.length > 0) {
+                    markUnavailableScreens(missingConnections);
+                } else {
+                    // All screens connected, clear warnings
+                    markUnavailableScreens([]);
+                }
+            }
+
+            // Always check readiness when on step 4
+            if (currentStep === 4) {
+                setTimeout(checkReadyForPlayback, 100);
+            }
+        });
+
+        // Check if ready for playback
+        function checkReadyForPlayback() {
+            console.log('=== Checking playback readiness ===');
+            console.log('Display count:', displayCount);
+            console.log('Connected clients:', connectedClients);
+
+            // Count screens by their number (not by connected clients array length)
+            const screenNumbers = new Set(connectedClients.map(c => c.screen));
+            const uniqueScreensConnected = screenNumbers.size;
+
+            console.log('Unique screens connected:', uniqueScreensConnected);
+
+            // Count ready screens
+            const readyScreens = connectedClients.filter(c => c.readyState === true);
+            const readyCount = readyScreens.length;
+
+            console.log('Ready screens:', readyCount, readyScreens);
+
+            // Check if all expected screens (1 to displayCount) are connected and ready
+            const allConnected = uniqueScreensConnected >= displayCount;
+            const allReady = readyCount >= displayCount;
+
+            console.log(`All connected: ${allConnected} (${uniqueScreensConnected}/${displayCount})`);
+            console.log(`All ready: ${allReady} (${readyCount}/${displayCount})`);
+
+            if (allConnected && allReady) {
+                console.log('✅ All ready - showing playback bar');
+                playbackBar.style.display = 'flex';
+            } else {
+                console.log('❌ Not ready - hiding playback bar');
+                playbackBar.style.display = 'none';
+            }
+        }
+
+        // Bucket Browser Functionality
+        const bucketBrowser = document.getElementById('bucket-browser');
+        const bucketInfo = document.getElementById('bucket-info');
+        const refreshBucketBtn = document.getElementById('refresh-bucket');
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(`${tab}-tab`).classList.add('active');
+            });
+        });
+
+        // Load videos from bucket
+        async function loadBucketVideos() {
+            try {
+                bucketInfo.textContent = 'Loading...';
+
+                const response = await fetch('/list-videos');
+                const data = await response.json();
+
+                if (data.videos && data.videos.length > 0) {
+                    bucketInfo.textContent = `${data.videos.length} video(s) in bucket`;
+                    renderBucketVideos(data.videos);
+                } else {
+                    bucketInfo.textContent = 'Bucket is empty';
+                    bucketBrowser.innerHTML = '<p style="text-align: center; padding: 20px; color: #6c757d;">No videos uploaded yet. Use the Upload tab to add videos.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading bucket videos:', error);
+                bucketInfo.textContent = 'Error loading videos';
+                bucketBrowser.innerHTML = '<p style="text-align: center; padding: 20px; color: #dc3545;">Error loading videos from bucket.</p>';
+            }
+        }
+
+        // Render bucket videos
+        function renderBucketVideos(bucketVideos) {
+            bucketBrowser.innerHTML = '';
+
+            bucketVideos.forEach(video => {
+                const item = document.createElement('div');
+                item.className = 'bucket-item';
+
+                const alreadyAdded = videos.find(v => v.url === video.url);
+
+                const sizeInMB = (video.size / (1024 * 1024)).toFixed(2);
+                const modifiedDate = new Date(video.modified).toLocaleString();
+
+                item.innerHTML = `
+                    <div class="bucket-item-info">
+                        <div class="bucket-item-name">
+                            <i class="fas fa-file-video"></i> ${video.filename}
+                        </div>
+                        <div class="bucket-item-meta">
+                            ${sizeInMB} MB • Modified: ${modifiedDate}
+                        </div>
+                    </div>
+                    <div class="bucket-item-actions">
+                        <button class="btn-bucket btn-bucket-add" ${alreadyAdded ? 'disabled' : ''}>
+                            <i class="fas fa-${alreadyAdded ? 'check' : 'plus'}"></i> ${alreadyAdded ? 'Added' : 'Add'}
+                        </button>
+                    </div>
+                `;
+
+                if (!alreadyAdded) {
+                    const addBtn = item.querySelector('.btn-bucket-add');
+                    addBtn.addEventListener('click', () => addVideoFromBucket(video));
+                }
+
+                bucketBrowser.appendChild(item);
+            });
+        }
+
+        // Add video from bucket
+        async function addVideoFromBucket(bucketVideo) {
+            try {
+                // Add to videos list
+                videos.push({
+                    name: bucketVideo.filename,
+                    url: bucketVideo.url
+                });
+
+                saveConfiguration();
+                addLog(`✅ Added from bucket: ${bucketVideo.filename}`);
+
+                // Reload bucket to update UI
+                await loadBucketVideos();
+
+                // Re-render media library
+                renderMediaLibrary();
+                populateVideoDropdowns();
+            } catch (error) {
+                console.error('Error adding video from bucket:', error);
+                showNotification(`Error adding video: ${error.message}`);
+            }
+        }
+
+        // Refresh bucket
+        refreshBucketBtn.addEventListener('click', () => {
+            addLog('Refreshing video bucket...');
+            loadBucketVideos();
+        });
+
+        // Preview functionality
+        let previewVideos = [];
+        let previewCanvases = [];
+        let previewAnimationFrame = null;
+        let previewPlaying = true;
+        let previewScrubbing = false;
+        let previewMaxDuration = 0;
+        const seamlessModeCheckbox = document.getElementById('seamless-mode');
+        const previewPlayPauseBtn = document.getElementById('preview-play-pause');
+        const previewScrubber = document.getElementById('preview-scrubber');
+        const previewTimeDisplay = document.getElementById('preview-time-display');
+        const previewDurationDisplay = document.getElementById('preview-duration-display');
+
+        previewBtn.addEventListener('click', () => {
+            openPreview();
+        });
+
+        // Seamless mode toggle
+        seamlessModeCheckbox.addEventListener('change', () => {
+            if (seamlessModeCheckbox.checked) {
+                previewContainer.classList.add('seamless');
+            } else {
+                previewContainer.classList.remove('seamless');
+            }
+        });
+
+        // Play/pause toggle
+        previewPlayPauseBtn.addEventListener('click', () => {
+            if (previewPlaying) {
+                // Pause all videos
+                previewVideos.forEach(video => {
+                    if (video) video.pause();
+                });
+                previewPlaying = false;
+                previewPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                // Play all videos
+                previewVideos.forEach(video => {
+                    if (video) video.play().catch(err => console.error('Preview play error:', err));
+                });
+                previewPlaying = true;
+                previewPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+        });
+
+        // Format time as MM:SS
+        function formatTime(seconds) {
+            if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Scrubber input - update all videos
+        previewScrubber.addEventListener('input', (e) => {
+            previewScrubbing = true;
+            const percentage = parseFloat(e.target.value) / 100;
+            const targetTime = percentage * previewMaxDuration;
+
+            previewVideos.forEach(video => {
+                if (video && video.duration) {
+                    // Handle looping by wrapping time within video duration
+                    const wrappedTime = targetTime % video.duration;
+                    video.currentTime = wrappedTime;
+                }
+            });
+
+            previewTimeDisplay.textContent = formatTime(targetTime);
+        });
+
+        // Scrubber change - resume normal behavior
+        previewScrubber.addEventListener('change', () => {
+            previewScrubbing = false;
+        });
+
+        function openPreview() {
+            // Clear existing preview
+            previewContainer.innerHTML = '';
+            previewVideos = [];
+            previewCanvases = [];
+            previewPlaying = true;
+            previewScrubbing = false;
+            previewMaxDuration = 0;
+            previewPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            previewScrubber.value = 0;
+            previewTimeDisplay.textContent = '0:00';
+            previewDurationDisplay.textContent = '0:00';
+
+            // Set grid layout - only use actual rows needed
+            previewContainer.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
+            previewContainer.style.gridTemplateRows = `repeat(${gridRows}, 1fr)`;
+
+            // Apply seamless mode if checked
+            if (seamlessModeCheckbox.checked) {
+                previewContainer.classList.add('seamless');
+            } else {
+                previewContainer.classList.remove('seamless');
+            }
+
+            // Get video assignments
+            const assignments = {};
+            document.querySelectorAll('.video-select-screen').forEach(select => {
+                const screen = select.dataset.screen;
+                const url = select.value;
+                if (url) {
+                    assignments[screen] = url;
+                }
+            });
+
+            // Create preview screens
+            for (let i = 1; i <= displayCount; i++) {
+                const screenDiv = document.createElement('div');
+                screenDiv.className = 'preview-screen';
+                screenDiv.id = `preview-screen-${i}`;
+
+                const label = document.createElement('div');
+                label.className = 'preview-screen-label';
+                label.textContent = `TV ${i}`;
+
+                const status = document.createElement('div');
+                status.className = 'preview-screen-status';
+                status.textContent = 'Loading...';
+                status.id = `preview-status-${i}`;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 1920;
+                canvas.height = 1080;
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+
+                screenDiv.appendChild(label);
+                screenDiv.appendChild(status);
+                screenDiv.appendChild(canvas);
+                previewContainer.appendChild(screenDiv);
+
+                // Create hidden video element
+                if (assignments[i]) {
+                    const video = document.createElement('video');
+                    video.src = assignments[i];
+                    video.muted = true;
+                    video.loop = true;
+                    video.preload = 'auto';
+                    video.crossOrigin = 'anonymous';
+
+                    video.addEventListener('loadeddata', () => {
+                        document.getElementById(`preview-status-${i}`).textContent = 'Ready';
+                        video.play().catch(err => console.error('Preview play error:', err));
+
+                        // Calculate max duration (longest video)
+                        if (video.duration > previewMaxDuration) {
+                            previewMaxDuration = video.duration;
+                            previewDurationDisplay.textContent = formatTime(previewMaxDuration);
+                        }
+                    });
+
+                    video.addEventListener('error', () => {
+                        document.getElementById(`preview-status-${i}`).textContent = 'Error';
+                    });
+
+                    previewVideos[i] = video;
+                    previewCanvases[i] = canvas;
+                } else {
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '48px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('No video assigned', canvas.width / 2, canvas.height / 2);
+                    document.getElementById(`preview-status-${i}`).textContent = 'No video';
+                }
+            }
+
+            // Start rendering
+            startPreviewRendering();
+
+            // Show modal
+            previewModal.show();
+        }
+
+        function startPreviewRendering() {
+            function render() {
+                // Find the video with the longest current time (for scrubber reference)
+                let maxCurrentTime = 0;
+
+                for (let i = 1; i <= displayCount; i++) {
+                    const video = previewVideos[i];
+                    const canvas = previewCanvases[i];
+
+                    if (video && canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        // Update status with current time
+                        const status = document.getElementById(`preview-status-${i}`);
+                        if (status && video.duration) {
+                            status.textContent = `${video.currentTime.toFixed(1)}s / ${video.duration.toFixed(1)}s`;
+                        }
+
+                        // Track max current time across all videos
+                        if (video.currentTime > maxCurrentTime) {
+                            maxCurrentTime = video.currentTime;
+                        }
+                    }
+                }
+
+                // Update scrubber position (only if not actively scrubbing)
+                if (!previewScrubbing && previewMaxDuration > 0) {
+                    const percentage = (maxCurrentTime / previewMaxDuration) * 100;
+                    previewScrubber.value = percentage;
+                    previewTimeDisplay.textContent = formatTime(maxCurrentTime);
+                }
+
+                previewAnimationFrame = requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        function stopPreviewRendering() {
+            if (previewAnimationFrame) {
+                cancelAnimationFrame(previewAnimationFrame);
+                previewAnimationFrame = null;
+            }
+
+            // Stop all preview videos
+            previewVideos.forEach(video => {
+                if (video) {
+                    video.pause();
+                    video.currentTime = 0;
+                }
+            });
+
+            previewVideos = [];
+            previewCanvases = [];
+        }
+
+        // Stop preview when modal closes
+        previewModalEl.addEventListener('hidden.bs.modal', () => {
+            stopPreviewRendering();
+        });
+
+        // Store video assignments for restoration
+        let savedAssignments = {};
+
+        // Restore video assignments from localStorage after clients connect
+        function restoreVideoAssignments() {
+            console.log('Restoring video assignments:', savedAssignments);
+
+            Object.keys(savedAssignments).forEach(screen => {
+                const assignment = savedAssignments[screen];
+                const select = document.querySelector(`.video-select-screen[data-screen="${screen}"]`);
+
+                if (select && assignment.url) {
+                    // Set the select value
+                    select.value = assignment.url;
+
+                    // Manually trigger the load
+                    const videoName = assignment.videoName || select.options[select.selectedIndex].text;
+                    addLog(`Restoring "${videoName}" on TV ${screen}`);
+                    socket.emit('load-screen', {
+                        screen: parseInt(screen),
+                        url: assignment.url,
+                        videoName
+                    });
+                }
+            });
+        }
+
+        // Enhanced load configuration to save assignments
+        function loadConfiguration() {
+            const config = localStorage.getItem('videoPlayerConfig');
+            if (config) {
+                try {
+                    const parsed = JSON.parse(config);
+                    gridRows = parsed.gridRows || 2;
+                    gridCols = parsed.gridCols || 2;
+                    if (parsed.videos) {
+                        videos = parsed.videos;
+                    }
+                    if (parsed.videoMetadata) {
+                        videoMetadata = parsed.videoMetadata;
+                    }
+                    if (parsed.assignments) {
+                        savedAssignments = parsed.assignments;
+                    }
+
+                    // Calculate display count from grid
+                    displayCount = gridRows * gridCols;
+                    updateGridDisplay();
+                } catch (e) {
+                    console.error('Error loading configuration:', e);
+                }
+            }
+        }
+
+        // Save video assignments to config
+        function saveVideoAssignments() {
+            const assignments = {};
+            document.querySelectorAll('.video-select-screen').forEach(select => {
+                const screen = select.dataset.screen;
+                const url = select.value;
+                const videoName = select.options[select.selectedIndex].text;
+                if (url) {
+                    assignments[screen] = { url, videoName };
+                }
+            });
+
+            savedAssignments = assignments;
+
+            // Update localStorage
+            const config = JSON.parse(localStorage.getItem('videoPlayerConfig') || '{}');
+            config.assignments = assignments;
+            localStorage.setItem('videoPlayerConfig', JSON.stringify(config));
+        }
+
+        // Override save configuration to include assignments
+        const originalSaveConfiguration = saveConfiguration;
+        saveConfiguration = async function() {
+            const assignments = {};
+            const selects = document.querySelectorAll('.video-select-screen');
+            if (selects.length > 0) {
+                selects.forEach(select => {
+                    const screen = select.dataset.screen;
+                    const url = select.value;
+                    if (url) {
+                        const videoName = select.options[select.selectedIndex].text;
+                        assignments[screen] = { url, videoName };
+                    }
+                });
+            }
+
+            const config = {
+                gridRows,
+                gridCols,
+                displayCount,
+                videos,
+                videoMetadata,
+                assignments
+            };
+            localStorage.setItem('videoPlayerConfig', JSON.stringify(config));
+
+            // Also save to server
+            try {
+                await fetch('/current-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config })
+                });
+            } catch (error) {
+                console.error('Error saving config to server:', error);
+            }
+        };
+
+        // Watch for Step 4 navigation to restore assignments
+        const originalGoToStep = goToStep;
+        goToStep = function(step) {
+            originalGoToStep(step);
+
+            // When going to step 4, restore assignments for any connected screens
+            if (step === 4 && Object.keys(savedAssignments).length > 0) {
+                setTimeout(() => {
+                    restoreVideoAssignments();
+                }, 500);
+            }
+        };
+
+        // Initialize on page load
+        loadConfiguration();
+        initGridSelector();
+        generateScreenControls();
+        updateStateDropdown();
+        renderMediaLibrary();
+        loadBucketVideos(); // Load bucket on startup
+        loadProfileList(); // Load profiles from server
+
+        // Restore assignments for dropdowns
+        if (Object.keys(savedAssignments).length > 0) {
+            Object.keys(savedAssignments).forEach(screen => {
+                const assignment = savedAssignments[screen];
+                const select = document.querySelector(`.video-select-screen[data-screen="${screen}"]`);
+                if (select) {
+                    select.value = assignment.url;
+                }
+            });
+        }
     </script>
 </body>
 </html>

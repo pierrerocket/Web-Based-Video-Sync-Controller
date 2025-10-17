@@ -1,0 +1,42 @@
+{
+  "gridRows": 1,
+  "gridCols": 4,
+  "displayCount": 4,
+  "videos": [
+    {
+      "name": "video-1.mp4",
+      "url": "/videos/video-1.mp4"
+    },
+    {
+      "name": "video-2.mp4",
+      "url": "/videos/video-2.mp4"
+    },
+    {
+      "name": "video-3.mp4",
+      "url": "/videos/video-3.mp4"
+    },
+    {
+      "name": "video-4.mp4",
+      "url": "/videos/video-4.mp4"
+    }
+  ],
+  "videoMetadata": {
+    "/videos/video-1.mp4": {
+      "duration": 35.744042,
+      "estimatedFrames": 1072
+    },
+    "/videos/video-2.mp4": {
+      "duration": 35.744042,
+      "estimatedFrames": 1072
+    },
+    "/videos/video-3.mp4": {
+      "duration": 35.744042,
+      "estimatedFrames": 1072
+    },
+    "/videos/video-4.mp4": {
+      "duration": 35.744042,
+      "estimatedFrames": 1072
+    }
+  },
+  "assignments": {}
+}

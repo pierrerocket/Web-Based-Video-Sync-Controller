@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Screen</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .choose-body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .choose-container {
+            text-align: center;
+            padding: 40px;
+            max-width: 1000px;
+            width: 90%;
+        }
+
+        .choose-title {
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .choose-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+        }
+
+        .screen-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .screen-item {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            padding: 25px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+        }
+
+        .screen-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+            background: #f8f9fa;
+        }
+
+        .screen-item:active {
+            transform: translateY(-1px);
+        }
+
+        .screen-info {
+            flex: 1;
+        }
+
+        .screen-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .screen-arrow {
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-left: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .choose-title {
+                font-size: 2rem;
+            }
+
+            .choose-subtitle {
+                font-size: 1rem;
+            }
+
+            .screen-item {
+                padding: 20px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .screen-title {
+                font-size: 1.2rem;
+            }
+
+            .screen-video {
+                font-size: 0.9rem;
+            }
+
+            .screen-arrow {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="choose-body">
+    <div class="choose-container">
+        <h1 class="choose-title">Choose Your Screen</h1>
+        <p class="choose-subtitle">Select which TV screen this device will display</p>
+
+        <div class="screen-list" id="screen-list">
+            <!-- Screen items will be generated here -->
+        </div>
+    </div>
+
+    <script>
+        // Fetch configuration from server
+        async function getConfig() {
+            try {
+                const response = await fetch('/current-config');
+                const data = await response.json();
+
+                if (data.config) {
+                    return data.config.displayCount || ((data.config.gridRows || 2) * (data.config.gridCols || 2));
+                }
+            } catch (e) {
+                console.error('Error loading config from server:', e);
+            }
+
+            // Fallback to localStorage
+            try {
+                const config = localStorage.getItem('videoPlayerConfig');
+                if (config) {
+                    const parsed = JSON.parse(config);
+                    return (parsed.gridRows || 2) * (parsed.gridCols || 2);
+                }
+            } catch (e) {
+                console.error('Error loading config from localStorage:', e);
+            }
+
+            return 4;
+        }
+
+        // Generate screen list items
+        async function generateScreenList() {
+            const displayCount = await getConfig();
+            const screenList = document.getElementById('screen-list');
+
+            for (let i = 1; i <= displayCount; i++) {
+                const item = document.createElement('a');
+                item.href = `/player.html?screen=${i}`;
+                item.className = 'screen-item';
+
+                item.innerHTML = `
+                    <div class="screen-info">
+                        <div class="screen-title">TV ${i}</div>
+                    </div>
+                    <div class="screen-arrow">→</div>
+                `;
+                screenList.appendChild(item);
+            }
+        }
+
+        // Initialize on page load
+        generateScreenList();
+    </script>
+</body>
+</html>
