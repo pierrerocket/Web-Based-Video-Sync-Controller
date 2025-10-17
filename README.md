@@ -1,4 +1,6 @@
-# Office Video Player - Synchronized Multi-TV Playback System
+# Video Sync Application
+
+**Created by: Pierre R. Balian**
 
 A browser-based synchronized video playback system designed for Samsung Smart TVs and other displays. Control multiple screens simultaneously with sub-second synchronization using WebSocket technology.
 
@@ -50,6 +52,26 @@ For development with auto-restart:
 ```bash
 npm run dev
 ```
+
+## Sass Compilation
+
+This project uses Sass for styling.
+
+### Watch mode (for development):
+```bash
+npm run sass
+```
+This will watch for changes in `public/scss/` and automatically compile to `public/css/`
+
+### Build once (for production):
+```bash
+npm run sass:build
+```
+This compiles and compresses the CSS files.
+
+**Note:** The CSS files in `public/css/` are auto-generated. Edit only the SCSS files in `public/scss/`.
+
+## URLs
 
 You'll see output like:
 ```

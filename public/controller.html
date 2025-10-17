@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!--
+    Video Sync Controller
+    Created by: Pierre R. Balian
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,11 +10,31 @@
     <title>Video Sync Controller</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container-xxl controller py-4">
-        <h1 class="text-center mb-4"><i class="fas fa-tv me-2"></i> Video Sync Controller</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0"><i class="fas fa-tv me-2"></i> Video Sync Controller</h1>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+                    <li>
+                        <div class="dropdown-item-text">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="enable-logging" checked>
+                                <label class="form-check-label" for="enable-logging">
+                                    <i class="fas fa-clipboard-list me-1"></i>Enable Logging
+                                </label>
+                            </div>
+                            <small class="text-muted d-block ms-4">Logs events to video-sync.log</small>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
         <!-- Step Navigation -->
         <div class="step-navigation">
@@ -32,32 +56,28 @@
             </div>
         </div>
 
+        <!-- Profile Management Section -->
+        <div class="card mb-4 shadow-sm bg-light">
+            <div class="card-body">
+                <h5 class="card-title mb-3"><i class="fas fa-folder-open me-2"></i>Load Profile</h5>
+                <div class="input-group">
+                    <select id="profile-select" class="form-select">
+                        <option value="">-- Load saved profile --</option>
+                    </select>
+                    <button id="load-profile" class="btn btn-info" type="button">
+                        <i class="fas fa-download"></i> Load
+                    </button>
+                    <button id="delete-profile" class="btn btn-danger" type="button">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Step 1: Grid Selection -->
         <div class="step-content active" id="step-1">
             <h2>Step 1: Select Your Grid Layout</h2>
             <p class="step-description">Choose how many displays you want to use</p>
-
-            <!-- Profile Management Section -->
-            <div class="state-controls-section">
-                <h3>Load Profile</h3>
-                <div class="row g-3 align-items-center">
-                    <div class="col-12 col-md-6">
-                        <select id="profile-select" class="form-select">
-                            <option value="">-- Load saved profile --</option>
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <button id="load-profile" class="btn btn-info w-100">
-                            <i class="fas fa-download"></i> Load
-                        </button>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <button id="delete-profile" class="btn btn-danger w-100">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <div class="grid-selector-wrapper">
                 <div class="grid-label">Grid Layout: <span id="grid-display">2 x 2</span></div>
@@ -328,21 +348,25 @@
         const previewModal = new bootstrap.Modal(previewModalEl);
         const previewContainer = document.getElementById('preview-container');
         const previewBtn = document.getElementById('preview-btn');
+        const enableLoggingCheckbox = document.getElementById('enable-logging');
 
         let shortestDuration = null;
         let displayCount = 4;
         let gridRows = 2;
         let gridCols = 2;
         let currentStep = 1;
+        let loggingEnabled = true; // Default to enabled
 
         // Helper to send logs to server
         function sendLog(message) {
             console.log(message);
-            socket.emit('client-log', {
-                clientType: 'controller',
-                screen: null,
-                message: message
-            });
+            if (loggingEnabled) {
+                socket.emit('client-log', {
+                    clientType: 'controller',
+                    screen: null,
+                    message: message
+                });
+            }
         }
 
         // Register as controller
@@ -994,6 +1018,18 @@
             socket.emit('toggle-labels', { show });
         });
 
+        // Enable/disable logging checkbox
+        enableLoggingCheckbox.addEventListener('change', () => {
+            loggingEnabled = enableLoggingCheckbox.checked;
+            console.log(`Logging ${loggingEnabled ? 'enabled' : 'disabled'}`);
+            addLog(`${loggingEnabled ? '📝 Enabled' : '🔇 Disabled'} server logging`);
+
+            // Send notification to server about logging state change
+            if (loggingEnabled) {
+                sendLog('📝 Server logging enabled');
+            }
+        });
+
         // Update loop duration based on loaded videos
         function updateLoopDuration() {
             const durations = [];
@@ -1287,7 +1323,14 @@
             if (clients.length === 0) {
                 screenStatus.innerHTML = '<p class="status-message">Waiting for screens to connect...</p>';
             } else {
-                screenStatus.innerHTML = clients.map(client => {
+                // Sort clients by screen number
+                const sortedClients = [...clients].sort((a, b) => {
+                    const screenA = parseInt(a.screen) || 0;
+                    const screenB = parseInt(b.screen) || 0;
+                    return screenA - screenB;
+                });
+
+                screenStatus.innerHTML = sortedClients.map(client => {
                     const readyIcon = client.readyState ? '✅' : '⏳';
                     const videoName = client.videoName ? ` - ${client.videoName}` : '';
                     return `<div class="screen-item">${readyIcon} Screen ${client.screen || 'Unknown'} ${client.readyState ? '(Ready)' : '(Loading...)'}${videoName}</div>`;

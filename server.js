@@ -64,6 +64,9 @@ app.get('/4', (req, res) => res.redirect('/player.html?screen=4'));
 // Choose screen landing page
 app.get('/choose', (req, res) => res.sendFile(path.join(__dirname, 'public', 'choose.html')));
 
+// Admin/Controller page
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'controller.html')));
+
 // Serve static files from public directory
 app.use(express.static('public'));
 app.use(express.json());
