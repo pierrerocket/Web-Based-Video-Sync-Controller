@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Sync Controller</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container controller">
+        <h1>📺 Video Sync Controller</h1>
+
+        <div class="status-section">
+            <h2>Connected Screens</h2>
+            <div id="screen-status">
+                <p class="status-message">Waiting for screens to connect...</p>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h2>Video Assignment (Per Screen)</h2>
+
+            <div class="per-screen-controls">
+                <div class="screen-control">
+                    <h3>📺 TV 1</h3>
+                    <select class="video-select-screen" data-screen="1">
+                        <option value="">-- Choose video --</option>
+                    </select>
+                    <div class="video-info" id="video-info-1"></div>
+                    <button class="btn-load-screen btn btn-secondary" data-screen="1">Load</button>
+                </div>
+
+                <div class="screen-control">
+                    <h3>📺 TV 2</h3>
+                    <select class="video-select-screen" data-screen="2">
+                        <option value="">-- Choose video --</option>
+                    </select>
+                    <div class="video-info" id="video-info-2"></div>
+                    <button class="btn-load-screen btn btn-secondary" data-screen="2">Load</button>
+                </div>
+
+                <div class="screen-control">
+                    <h3>📺 TV 3</h3>
+                    <select class="video-select-screen" data-screen="3">
+                        <option value="">-- Choose video --</option>
+                    </select>
+                    <div class="video-info" id="video-info-3"></div>
+                    <button class="btn-load-screen btn btn-secondary" data-screen="3">Load</button>
+                </div>
+
+                <div class="screen-control">
+                    <h3>📺 TV 4</h3>
+                    <select class="video-select-screen" data-screen="4">
+                        <option value="">-- Choose video --</option>
+                    </select>
+                    <div class="video-info" id="video-info-4"></div>
+                    <button class="btn-load-screen btn btn-secondary" data-screen="4">Load</button>
+                </div>
+            </div>
+
+            <h2>Synchronized Playback Controls</h2>
+            <p class="info-text">These controls affect ALL screens simultaneously</p>
+
+            <div class="main-controls">
+                <button id="play-btn" class="btn btn-primary">▶️ Play All</button>
+                <button id="pause-btn" class="btn btn-warning">⏸️ Pause All</button>
+                <button id="stop-btn" class="btn btn-danger">⏹️ Stop All</button>
+                <button id="sync-btn" class="btn btn-info">🔄 Re-Sync All</button>
+            </div>
+
+            <div class="seek-controls-grid">
+                <div>
+                    <label for="seek-time">Seek All to (seconds):</label>
+                    <input type="number" id="seek-time" min="0" step="1" value="0">
+                    <button id="seek-btn" class="btn btn-secondary">⏩ Seek All</button>
+                </div>
+            </div>
+
+            <div class="loop-sync-section">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="loop-at-shortest">
+                    <span>Loop all videos at shortest duration (keeps perfect sync)</span>
+                </label>
+                <p class="info-text" id="shortest-duration-info">Load videos to see shortest duration</p>
+            </div>
+        </div>
+
+        <div class="logs-section">
+            <h2>Activity Log</h2>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const logs = document.getElementById('logs');
+        const screenStatus = document.getElementById('screen-status');
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const syncBtn = document.getElementById('sync-btn');
+        const seekBtn = document.getElementById('seek-btn');
+        const seekTime = document.getElementById('seek-time');
+        const loopAtShortestCheckbox = document.getElementById('loop-at-shortest');
+        const shortestDurationInfo = document.getElementById('shortest-duration-info');
+
+        // Track which screens have videos loaded
+        let screensLoaded = new Set();
+        let shortestDuration = null;
+
+        // Register as controller
+        socket.emit('register', { role: 'controller' });
+
+        // Populate video list (you can modify this list)
+        const videos = [
+            { name: 'Video 1', url: '/videos/video-1.mp4' },
+            { name: 'Video 2', url: '/videos/video-2.mp4' },
+            { name: 'Video 3', url: '/videos/video-3.mp4' },
+            { name: 'Video 4', url: '/videos/video-4.mp4' }
+        ];
+
+        // Store video metadata
+        let videoMetadata = {};
+
+        // Populate all dropdowns
+        document.querySelectorAll('.video-select-screen').forEach(select => {
+            videos.forEach(video => {
+                const option = document.createElement('option');
+                option.value = video.url;
+                option.textContent = video.name;
+                select.appendChild(option);
+            });
+
+            // Add change listener to load metadata when video is selected
+            select.addEventListener('change', async () => {
+                const screen = select.dataset.screen;
+                const url = select.value;
+                const infoDiv = document.getElementById(`video-info-${screen}`);
+
+                if (url && infoDiv) {
+                    infoDiv.innerHTML = '<em>Loading metadata...</em>';
+
+                    // Check if we already have metadata for this video
+                    if (videoMetadata[url]) {
+                        displayVideoInfo(screen, videoMetadata[url]);
+                        updateLoopDuration();
+                    } else {
+                        // Load video metadata
+                        const metadata = await getVideoMetadata(url);
+                        if (metadata) {
+                            videoMetadata[url] = metadata;
+                            displayVideoInfo(screen, metadata);
+                            updateLoopDuration();
+                        } else {
+                            infoDiv.innerHTML = '<em style="color: red;">Error loading metadata</em>';
+                        }
+                    }
+                } else if (infoDiv) {
+                    infoDiv.innerHTML = '';
+                }
+            });
+        });
+
+        // Get video metadata by loading it in a hidden video element
+        async function getVideoMetadata(url) {
+            return new Promise((resolve) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.muted = true;
+
+                video.addEventListener('loadedmetadata', () => {
+                    const duration = video.duration;
+                    const estimatedFrames = Math.floor(duration * 30);
+                    resolve({ duration, estimatedFrames });
+                    video.remove();
+                });
+
+                video.addEventListener('error', () => {
+                    console.error('Error loading video metadata for:', url);
+                    resolve(null);
+                    video.remove();
+                });
+
+                video.src = url;
+            });
+        }
+
+        // Display video info in the info div
+        function displayVideoInfo(screen, metadata) {
+            const infoDiv = document.getElementById(`video-info-${screen}`);
+            if (infoDiv && metadata) {
+                infoDiv.innerHTML = `<strong>Duration:</strong> ${metadata.duration.toFixed(2)}s<br><strong>Frames:</strong> ~${metadata.estimatedFrames}`;
+            }
+        }
+
+        // Update screen status
+        socket.on('client-status', (clients) => {
+            if (clients.length === 0) {
+                screenStatus.innerHTML = '<p class="status-message">No screens connected</p>';
+            } else {
+                screenStatus.innerHTML = clients.map(client => {
+                    const readyIcon = client.readyState ? '✅' : '⏳';
+                    const videoName = client.videoName ? ` - ${client.videoName}` : '';
+                    return `<div class="screen-item">${readyIcon} Screen ${client.screen || 'Unknown'} ${client.readyState ? '(Ready)' : '(Loading...)'}${videoName}</div>`;
+                }).join('');
+            }
+        });
+
+        // Load video on specific screen
+        document.querySelectorAll('.btn-load-screen').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const screen = btn.dataset.screen;
+                const select = document.querySelector(`.video-select-screen[data-screen="${screen}"]`);
+                const url = select.value;
+
+                if (url) {
+                    const videoName = select.options[select.selectedIndex].text;
+                    addLog(`Loading "${videoName}" on TV ${screen}`);
+                    socket.emit('load-screen', { screen, url, videoName });
+                    screensLoaded.add(screen);
+                }
+            });
+        });
+
+        // Play all
+        playBtn.addEventListener('click', () => {
+            addLog('▶️ Playing all screens');
+            socket.emit('play-all', { timestamp: Date.now() });
+        });
+
+        // Pause all
+        pauseBtn.addEventListener('click', () => {
+            addLog('⏸️ Pausing all screens');
+            socket.emit('pause-all');
+        });
+
+        // Stop all
+        stopBtn.addEventListener('click', () => {
+            addLog('⏹️ Stopping all screens');
+            socket.emit('stop-all');
+            screensLoaded.clear();
+        });
+
+        // Sync all
+        syncBtn.addEventListener('click', () => {
+            addLog('🔄 Re-syncing all screens');
+            socket.emit('sync-all', { timestamp: Date.now() });
+        });
+
+        // Seek all
+        seekBtn.addEventListener('click', () => {
+            const time = parseFloat(seekTime.value);
+            addLog(`⏩ Seeking all to ${time}s`);
+            socket.emit('seek-all', { time, timestamp: Date.now() });
+        });
+
+        // Loop at shortest checkbox
+        loopAtShortestCheckbox.addEventListener('change', () => {
+            if (loopAtShortestCheckbox.checked && shortestDuration) {
+                addLog(`🔄 Enabled loop-at-shortest: ${shortestDuration.toFixed(2)}s`);
+                socket.emit('set-loop-duration', { duration: shortestDuration });
+            } else {
+                addLog('🔄 Disabled loop-at-shortest (using natural loop)');
+                socket.emit('set-loop-duration', { duration: null });
+            }
+        });
+
+        // Update loop duration based on loaded videos
+        function updateLoopDuration() {
+            const durations = [];
+
+            // Collect durations from all selected videos
+            document.querySelectorAll('.video-select-screen').forEach(select => {
+                const url = select.value;
+                if (url && videoMetadata[url]) {
+                    durations.push(videoMetadata[url].duration);
+                }
+            });
+
+            if (durations.length > 0) {
+                shortestDuration = Math.min(...durations);
+                const shortestFrames = Math.floor(shortestDuration * 30);
+                shortestDurationInfo.textContent = `Shortest: ${shortestDuration.toFixed(2)}s (~${shortestFrames} frames)`;
+
+                // Auto-apply if checkbox is already checked
+                if (loopAtShortestCheckbox.checked) {
+                    socket.emit('set-loop-duration', { duration: shortestDuration });
+                }
+            } else {
+                shortestDurationInfo.textContent = 'Select videos to see shortest duration';
+            }
+        }
+
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${time}] ${message}`;
+            logs.insertBefore(logEntry, logs.firstChild);
+
+            // Keep only last 20 logs
+            while (logs.children.length > 20) {
+                logs.removeChild(logs.lastChild);
+            }
+        }
+
+        // Socket events
+        socket.on('connect', () => {
+            addLog('✅ Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            addLog('❌ Disconnected from server');
+        });
+    </script>
+</body>
+</html>

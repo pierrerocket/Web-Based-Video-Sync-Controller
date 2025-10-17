@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="player-body">
+    <div class="player-container" id="player-container">
+        <div class="screen-label" id="screen-label">TV</div>
+        <video id="video-player" preload="auto" crossorigin="anonymous" muted loop></video>
+        <div class="status-overlay" id="status-overlay">
+            <div class="status-icon">📺</div>
+            <div class="status-text">Waiting for video...</div>
+            <button class="tap-to-enable" id="tap-button" style="display: none;">Tap to Enable Audio</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const video = document.getElementById('video-player');
+        const statusOverlay = document.getElementById('status-overlay');
+        const screenLabel = document.getElementById('screen-label');
+        const tapButton = document.getElementById('tap-button');
+        const playerContainer = document.getElementById('player-container');
+
+        // Get screen number from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const screenNumber = urlParams.get('screen') || 'Unknown';
+
+        screenLabel.textContent = `TV ${screenNumber}`;
+
+        // Track user interaction
+        let hasInteracted = false;
+        let loopAtDuration = null; // If set, loop at this duration instead of natural end
+
+        // Register as player
+        socket.emit('register', { role: 'player', screen: screenNumber });
+
+        // Enable interaction on any touch/click
+        function enableInteraction() {
+            hasInteracted = true;
+            video.muted = false;
+            tapButton.style.display = 'none';
+            console.log('User interaction enabled, audio unmuted');
+        }
+
+        // Add click/touch listeners to entire container
+        playerContainer.addEventListener('click', enableInteraction, { once: true });
+        playerContainer.addEventListener('touchstart', enableInteraction, { once: true });
+        tapButton.addEventListener('click', enableInteraction);
+
+        function updateStatus(text, show = true, showTapButton = false) {
+            statusOverlay.querySelector('.status-text').textContent = text;
+            statusOverlay.style.display = show ? 'flex' : 'none';
+            if (showTapButton && !hasInteracted) {
+                tapButton.style.display = 'block';
+            }
+        }
+
+        // Handle video ready state
+        video.addEventListener('canplaythrough', () => {
+            console.log('Video can play through');
+
+            // Send metadata again with player-ready (in case it was missed)
+            if (video.duration && !isNaN(video.duration)) {
+                const duration = video.duration;
+                const frameRate = 30;
+                const estimatedFrames = Math.floor(duration * frameRate);
+
+                socket.emit('video-metadata', {
+                    screen: screenNumber,
+                    duration: duration,
+                    estimatedFrames: estimatedFrames
+                });
+            }
+
+            socket.emit('player-ready', { screen: screenNumber });
+            // Only show overlay if video is not currently playing
+            if (video.paused) {
+                updateStatus('Ready to play - Tap screen for audio', true, true);
+            }
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+            console.log('Video metadata loaded');
+            const duration = video.duration;
+            const frameRate = 30; // Estimate - HTML5 doesn't expose exact framerate
+            const estimatedFrames = Math.floor(duration * frameRate);
+
+            console.log(`Duration: ${duration}s, Estimated frames: ${estimatedFrames}`);
+
+            // Send metadata to server
+            socket.emit('video-metadata', {
+                screen: screenNumber,
+                duration: duration,
+                estimatedFrames: estimatedFrames
+            });
+        });
+
+        video.addEventListener('waiting', () => {
+            console.log('Video buffering...');
+            updateStatus('Buffering...', true);
+        });
+
+        video.addEventListener('playing', () => {
+            console.log('Video playing');
+            updateStatus('', false);
+            tapButton.style.display = 'none';
+        });
+
+        video.addEventListener('pause', () => {
+            console.log('Video paused');
+            updateStatus('Paused', true);
+        });
+
+        // Check if we should loop early (for sync)
+        video.addEventListener('timeupdate', () => {
+            if (loopAtDuration !== null && video.currentTime >= loopAtDuration) {
+                console.log(`Looping at ${loopAtDuration}s for sync`);
+                video.currentTime = 0;
+            }
+        });
+
+        video.addEventListener('ended', () => {
+            console.log('Video ended - looping');
+            // Don't show status overlay on loop
+            // Video will automatically restart due to loop attribute
+        });
+
+        video.addEventListener('error', (e) => {
+            console.error('Video error:', e);
+            updateStatus('Error loading video', true);
+        });
+
+        // Socket event handlers - SCREEN SPECIFIC
+        socket.on('load-screen', (data) => {
+            // Only load if this message is for THIS screen
+            if (data.screen == screenNumber) {
+                console.log('Received load-screen command for this screen:', data);
+                updateStatus('Loading video...', true);
+                video.src = data.url;
+                video.load();
+            }
+        });
+
+        // Socket event handlers - ALL SCREENS
+        socket.on('play-all', async (data) => {
+            console.log('Received play-all command');
+            updateStatus('', false);
+            try {
+                // Calculate network delay compensation
+                const now = Date.now();
+                const delay = now - data.timestamp;
+                console.log(`Network delay: ${delay}ms`);
+
+                // Small delay to ensure all clients start together
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                // Try to play (will be muted if no user interaction yet)
+                await video.play();
+
+                // Show tap prompt if still muted
+                if (video.muted && !hasInteracted) {
+                    console.log('Playing muted - waiting for user interaction');
+                }
+            } catch (err) {
+                console.error('Play error:', err);
+                updateStatus('Play error: ' + err.message, true);
+            }
+        });
+
+        socket.on('pause-all', () => {
+            console.log('Received pause-all command');
+            video.pause();
+        });
+
+        socket.on('stop-all', () => {
+            console.log('Received stop-all command');
+            video.pause();
+            video.currentTime = 0;
+            updateStatus('Stopped', true);
+        });
+
+        socket.on('seek-all', (data) => {
+            console.log('Received seek-all command:', data);
+            video.currentTime = data.time;
+        });
+
+        socket.on('sync-all', async (data) => {
+            console.log('Received sync-all command');
+            // Pause briefly, then resume to re-sync
+            const wasPlaying = !video.paused;
+            video.pause();
+
+            // Small delay for sync
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            if (wasPlaying) {
+                await video.play();
+            }
+        });
+
+        // Set loop duration for synced looping
+        socket.on('set-loop-duration', (data) => {
+            console.log('Setting loop duration:', data);
+            loopAtDuration = data.duration;
+            if (loopAtDuration) {
+                video.removeAttribute('loop'); // Disable native loop
+                console.log(`Will loop at ${loopAtDuration}s`);
+            } else {
+                video.setAttribute('loop', ''); // Re-enable native loop
+                console.log('Using natural loop');
+            }
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            updateStatus('Connected - Waiting for video...', true);
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            updateStatus('Disconnected from server', true);
+        });
+
+        // Prevent video controls on TV (optional)
+        video.controls = false;
+
+        // Keep screen awake (for some browsers)
+        if ('wakeLock' in navigator) {
+            navigator.wakeLock.request('screen').catch(err => {
+                console.log('Wake lock not supported:', err);
+            });
+        }
+    </script>
+</body>
+</html>
